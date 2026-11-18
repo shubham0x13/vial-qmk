@@ -1,7 +1,7 @@
 {
     "keyboard_name": "Onekey MCXC243",
     "processor": "MCXC243",
-    "bootloader": "custom",
+    "bootloader": "nxp-rom",
     "eeprom": {
         "driver": "transient"
     },

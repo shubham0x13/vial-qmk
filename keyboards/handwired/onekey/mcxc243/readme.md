@@ -9,10 +9,15 @@ The MCU runs from its 48 MHz internal oscillator (MCG-Lite, HIRC). USB uses the 
 
 ## Flashing
 
-The MCXC243 has an NXP ROM bootloader that shows up on USB as `15a2:0073`. Hold the BOOT pad (PTA4) low while resetting or plugging in to enter it, then flash with NXP's `blhost`:
+The MCXC243 has an NXP ROM bootloader that shows up on USB as `15a2:0073`. Enter it with one of:
+
+* the `QK_BOOT` keycode (the `reset` keymap of this keyboard has it on the key),
+* holding the BOOT pad (PTA4, NMI_b/BOOTCFG0) low while resetting or plugging in.
+
+Then flash with NXP's `blhost` (part of [SPSDK](https://pypi.org/project/spsdk/)):
 
 ```sh
-blhost -u 0x15a2,0x0073 -- flash-erase-all
-blhost -u 0x15a2,0x0073 -- write-memory 0x0 handwired_onekey_mcxc243_default.bin
-blhost -u 0x15a2,0x0073 -- reset
+qmk flash -kb handwired/onekey/mcxc243 -km default
 ```
+
+`qmk flash` waits for the bootloader, erases the flash the image needs, writes the image and resets the board.
