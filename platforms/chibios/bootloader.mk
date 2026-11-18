@@ -29,6 +29,7 @@
 #     at32-dfu     AT32 USB DFU in ROM
 #     tinyuf2      TinyUF2
 #     rp2040       Raspberry Pi RP2040
+#     nxp-rom      NXP ROM bootloader (MCX C)
 # Current options for RISC-V:
 #     gd32v-dfu    GD32V USB DFU in ROM
 #
@@ -52,6 +53,10 @@ ifeq ($(strip $(BOOTLOADER)), halfkay)
     ifneq (,$(filter $(MCU_ORIG), MKL26Z64 MK20DX128 MK20DX256 MK64FX512 MK66FX1M0))
         FIRMWARE_FORMAT = hex
     endif
+endif
+ifeq ($(strip $(BOOTLOADER)), nxp-rom)
+    OPT_DEFS += -DBOOTLOADER_NXP_ROM
+    BOOTLOADER_TYPE = nxp_rom
 endif
 ifeq ($(strip $(BOOTLOADER)), stm32-dfu)
     OPT_DEFS += -DBOOTLOADER_STM32_DFU

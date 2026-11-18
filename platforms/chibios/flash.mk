@@ -63,6 +63,26 @@ uf2-split-left: flash
 
 uf2-split-right: flash
 
+BLHOST ?= blhost
+BLHOST_ARGS ?= -u 0x15a2,0x0073
+define EXEC_BLHOST
+	if ! $(BLHOST) $(BLHOST_ARGS) -- get-property 1 >/dev/null 2>&1; then \
+		printf "$(MSG_BOOTLOADER_NOT_FOUND_QUICK_RETRY)" ;\
+		sleep $(BOOTLOADER_RETRY_TIME) ;\
+		while ! $(BLHOST) $(BLHOST_ARGS) -- get-property 1 >/dev/null 2>&1; do \
+			printf "." ;\
+			sleep $(BOOTLOADER_RETRY_TIME) ;\
+		done ;\
+		printf "\n" ;\
+	fi
+	$(BLHOST) $(BLHOST_ARGS) -- flash-erase-region 0x0 $$(( ($$(wc -c < $(BUILD_DIR)/$(TARGET).bin) + 1023) / 1024 * 1024 )) && \
+	$(BLHOST) $(BLHOST_ARGS) -- write-memory 0x0 $(BUILD_DIR)/$(TARGET).bin && \
+	$(BLHOST) $(BLHOST_ARGS) -- reset
+endef
+
+blhost: $(BUILD_DIR)/$(TARGET).bin cpfirmware sizeafter
+	$(call EXEC_BLHOST)
+
 ST_LINK_CLI ?= st-link_cli
 ST_LINK_ARGS ?=
 
@@ -105,6 +125,8 @@ else ifeq ($(strip $(BOOTLOADER)),uf2boot)
 	$(UNSYNC_OUTPUT_CMD) && $(call EXEC_UF2_UTIL_DEPLOY)
 else ifeq ($(strip $(BOOTLOADER)),rp2040)
 	$(UNSYNC_OUTPUT_CMD) && $(call EXEC_UF2_UTIL_DEPLOY)
+else ifeq ($(strip $(BOOTLOADER)),nxp-rom)
+	$(UNSYNC_OUTPUT_CMD) && $(call EXEC_BLHOST)
 else ifeq ($(strip $(MCU_FAMILY)),KINETIS)
 	$(UNSYNC_OUTPUT_CMD) && $(call EXEC_TEENSY)
 else ifeq ($(strip $(MCU_FAMILY)),MIMXRT1062)

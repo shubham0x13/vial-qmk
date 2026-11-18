@@ -378,6 +378,39 @@ Flashing sequence:
 * `:dfu-util`: Waits until an AT32 bootloader device is available, and then flashes the firmware.
 * `:dfu-util-split-left` and `:dfu-util-split-right`: Flashes the firmware as with `:dfu-util`, but also sets the handedness setting in EEPROM.
 
+## NXP ROM bootloader
+
+NXP MCX C MCUs, such as the MCXC243, come with a bootloader in ROM that cannot be modified nor deleted. It shows up on USB as `15A2:0073`, and a blank chip starts it automatically.
+
+To ensure compatibility with the NXP ROM bootloader, make sure this block is present in your `rules.mk`:
+
+```make
+# Bootloader selection
+BOOTLOADER = nxp-rom
+```
+
+Compatible flashers:
+
+* [blhost](https://pypi.org/project/spsdk/) (part of NXP's SPSDK) / `:blhost` target in QMK (recommended command line)
+  ```
+  blhost -u 0x15a2,0x0073 -- flash-erase-region 0x0 <file size rounded up to 1 KB>
+  blhost -u 0x15a2,0x0073 -- write-memory 0x0 <filename>
+  blhost -u 0x15a2,0x0073 -- reset
+  ```
+
+Flashing sequence:
+
+1. Enter the bootloader using any of the following methods:
+    * Tap the `QK_BOOT` keycode
+    * Hold the `NMI_b`/`BOOTCFG0` pin low while resetting or powering up the board (on the MCXC243 this needs the flash option byte `FOPT[BOOTPIN_OPT] = 0`, as set by the `GENERIC_NXP_MCXC243` board)
+2. Wait for the OS to detect the device
+3. Flash a .bin file
+4. Reset the device into application mode (may be done automatically)
+
+### `make` Targets
+
+* `:blhost`: Waits until an NXP ROM bootloader device is available, and then flashes the firmware.
+
 ## tinyuf2
 
 Keyboards may opt into supporting the tinyuf2 bootloader. This is currently only supported on F303/F401/F411.
