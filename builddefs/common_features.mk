@@ -233,6 +233,11 @@ ifneq ($(strip $(EEPROM_DRIVER)),none)
           OPT_DEFS += -DEEPROM_DRIVER -DEEPROM_WEAR_LEVELING
           SRC += eeprom_driver.c eeprom_wear_leveling.c
           WEAR_LEVELING_DRIVER ?= rp2040_flash
+        else ifneq ($(filter $(MCU_ORIG),MCXC243),)
+          # Wear-leveling EEPROM implementation, backed by MCU flash (FTFA)
+          OPT_DEFS += -DEEPROM_DRIVER -DEEPROM_WEAR_LEVELING
+          SRC += eeprom_driver.c eeprom_wear_leveling.c
+          WEAR_LEVELING_DRIVER ?= kinetis_ftfa
         else ifneq ($(filter $(MCU_SERIES),KL2x K20x),)
           # Teensy EEPROM implementations
           OPT_DEFS += -DEEPROM_KINETIS_FLEXRAM
@@ -251,7 +256,7 @@ ifneq ($(strip $(EEPROM_DRIVER)),none)
   endif
 endif
 
-VALID_WEAR_LEVELING_DRIVER_TYPES := custom embedded_flash spi_flash rp2040_flash legacy
+VALID_WEAR_LEVELING_DRIVER_TYPES := custom embedded_flash spi_flash rp2040_flash kinetis_ftfa legacy
 WEAR_LEVELING_DRIVER ?= none
 ifneq ($(strip $(WEAR_LEVELING_DRIVER)),none)
   ifeq ($(filter $(WEAR_LEVELING_DRIVER),$(VALID_WEAR_LEVELING_DRIVER_TYPES)),)
@@ -272,6 +277,8 @@ ifneq ($(strip $(WEAR_LEVELING_DRIVER)),none)
       SRC += wear_leveling_flash_spi.c
     else ifeq ($(strip $(WEAR_LEVELING_DRIVER)), rp2040_flash)
       SRC += wear_leveling_rp2040_flash.c
+    else ifeq ($(strip $(WEAR_LEVELING_DRIVER)), kinetis_ftfa)
+      SRC += wear_leveling_kinetis_ftfa.c
     else ifeq ($(strip $(WEAR_LEVELING_DRIVER)), legacy)
       COMMON_VPATH += $(PLATFORM_PATH)/$(PLATFORM_KEY)/$(DRIVER_DIR)/flash
       SRC += legacy_flash_ops.c wear_leveling_legacy.c
