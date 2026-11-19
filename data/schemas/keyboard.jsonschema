@@ -236,6 +236,7 @@
                 "lufa-dfu",
                 "lufa-ms",
                 "md-boot",
+                "nxp-rom",
                 "qmk-dfu",
                 "qmk-hid",
                 "rp2040",

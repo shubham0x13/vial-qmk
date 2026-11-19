@@ -190,6 +190,20 @@ def _flash_wb32_dfu_updater(file):
     cli.run([cmd, '-t', '-s', '0x08000000', '-D', file], capture_output=False)
 
 
+def _flash_blhost(file):
+    # NXP ROM bootloader (MCX C) over USB HID, with NXP's blhost. Erase only
+    # the flash the image needs (1 KB sectors), so data stored behind it is kept.
+    if not shutil.which('blhost'):
+        return (True, "Please make sure 'blhost' (part of NXP's SPSDK) is available on your system.")
+
+    length = (os.path.getsize(file) + 1023) // 1024 * 1024
+    for args in (['flash-erase-region', '0x0', str(length)], ['write-memory', '0x0', file], ['reset']):
+        if cli.run(['blhost', '-u', '0x15a2,0x0073', '--', *args], capture_output=False).returncode != 0:
+            return (True, f"'blhost {args[0]}' failed.")
+
+    return (False, None)
+
+
 def _flash_isp(mcu, programmer, file):
     programmer = 'usbasp' if programmer == 'usbasploader' else 'usbtiny'
     # Check if the provided mcu has an avrdude-specific name, otherwise pass on what the user provided
@@ -231,6 +245,8 @@ def flasher(mcu, file):
     elif bl == 'wb32-dfu':
         if _flash_wb32_dfu_updater(file):
             return (True, "Please make sure 'wb32-dfu-updater_cli' is available on your system.")
+    elif bl == 'nxp-rom':
+        return _flash_blhost(file)
     elif bl == 'usbasploader' or bl == 'usbtinyisp':
         if mcu:
             _flash_isp(mcu, bl, file)

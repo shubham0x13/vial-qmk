@@ -113,6 +113,15 @@ const PALConfig pal_default_config = {
  *          and before any other initialization.
  */
 void __early_init(void) {
+    /* Reference manual 22.2.5, 22.2.6 and 13.3.3: the ROM bootloader sets
+     * RCM_FM[FORCEROM], so that every reset boots the ROM again, and
+     * RCM_MR[BOOTROM] reports a boot from the ROM. BOOTROM should be cleared
+     * (write 1) before running code from flash, and clearing FORCEROM makes
+     * the next reset start this firmware. The ROM can start the firmware
+     * without a reset, after its peripheral detection timeout. */
+    RCM->MR = RCM_MR_BOOTROM_MASK;
+    RCM->FM = 0;
+
     kl2x_clock_init();
 }
 
