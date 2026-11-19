@@ -27,6 +27,37 @@ ifneq ($(findstring MKL26Z64, $(MCU)),)
   BOARD ?= PJRC_TEENSY_LC
 endif
 
+ifneq ($(findstring MCXC243, $(MCU)),)
+  # Cortex version
+  MCU = cortex-m0plus
+
+  # ARM version, CORTEX-M0/M1 are 6, CORTEX-M3/M4/M7 are 7
+  ARMV = 6
+
+  ## chip/board settings
+  # - the next two should match the directories in
+  #   <chibios[-contrib]>/os/hal/ports/$(MCU_PORT_NAME)/$(MCU_SERIES)
+  #   OR
+  #   <chibios[-contrib]>/os/hal/ports/$(MCU_FAMILY)/$(MCU_SERIES)
+  # - the MCXC243 uses the KL2x port of ChibiOS-Contrib, with the KL27Zxxx
+  #   device description selected by the board
+  MCU_FAMILY = KINETIS
+  MCU_SERIES = KL2x
+
+  # Linker script to use
+  # - it should exist either in <chibios>/os/common/ports/ARMCMx/compilers/GCC/ld/
+  #   or <keyboard_dir>/ld/
+  MCU_LDSCRIPT ?= MCXC243
+
+  # Startup code to use
+  #  - it should exist in <chibios>/os/common/ports/ARMCMx/compilers/GCC/mk/
+  MCU_STARTUP ?= kl2x
+
+  # Board: it should exist either in <chibios>/os/hal/boards/,
+  # <keyboard_dir>/boards/, or drivers/boards/
+  BOARD ?= GENERIC_NXP_MCXC243
+endif
+
 ifneq ($(findstring MK20DX128, $(MCU)),)
   # Cortex version
   MCU = cortex-m4
