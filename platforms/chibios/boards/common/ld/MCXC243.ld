@@ -33,6 +33,10 @@
  * The last 8 KB of flash (flash3, 0x0001_E000-0x0001_FFFF, eight 1 KB sectors)
  * are kept free of code and data: QMK's embedded_flash wear-leveling places
  * its default 8 KB backing store at the end of the flash.
+ *
+ * flash4 (0x0000_03C0-0x0000_03FF) is the bootloader configuration area (BCA)
+ * of the ROM bootloader (reference manual section 13.3.2). It stays empty
+ * unless a keyboard places one in the .bootloader_config section.
  */
 MEMORY
 {
@@ -40,7 +44,7 @@ MEMORY
   flash1   : org = 0x00000400, len = 0x10
   flash2   : org = 0x00000410, len = 120k - 0x410
   flash3   : org = 0x0001E000, len = 8k
-  flash4   : org = 0x00000000, len = 0
+  flash4   : org = 0x000003C0, len = 0x40
   flash5   : org = 0x00000000, len = 0
   flash6   : org = 0x00000000, len = 0
   flash7   : org = 0x00000000, len = 0
@@ -61,6 +65,15 @@ SECTIONS
   {
     KEEP(*(.cfmconfig))
   } > flash1
+}
+
+/* Flash region for the bootloader configuration area of the ROM bootloader.*/
+SECTIONS
+{
+  .bootloader_config : ALIGN(4) SUBALIGN(4)
+  {
+    KEEP(*(.bootloader_config))
+  } > flash4
 }
 
 /* For each data/text section two region are defined, a virtual region
