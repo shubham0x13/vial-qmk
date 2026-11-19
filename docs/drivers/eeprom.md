@@ -107,6 +107,7 @@ Driver                                  | Description
 `WEAR_LEVELING_DRIVER = embedded_flash` | This driver is used for emulating EEPROM by writing to embedded flash on the MCU.
 `WEAR_LEVELING_DRIVER = spi_flash`      | This driver is used to address external SPI NOR Flash peripherals.
 `WEAR_LEVELING_DRIVER = rp2040_flash`   | This driver is used to write to the same storage the RP2040 executes code from.
+`WEAR_LEVELING_DRIVER = kinetis_ftfa`   | This driver is used for emulating EEPROM by writing to the program flash of MCUs with the Kinetis FTFA flash memory module, such as the NXP MCXC243.
 `WEAR_LEVELING_DRIVER = legacy`         | This driver is the "legacy" emulated EEPROM provided in historical revisions of QMK. Currently used for STM32F0xx and STM32F4x1, but slated for deprecation and removal once `embedded_flash` support for those MCU families is complete.
 
 ::: warning
@@ -163,6 +164,19 @@ Configurable options in your keyboard's `config.h`:
 `#define WEAR_LEVELING_LOGICAL_SIZE`      | `(backing_size/2)`         | Number of bytes "exposed" to the rest of QMK and denotes the size of the usable EEPROM.
 `#define WEAR_LEVELING_BACKING_SIZE`      | `8192`                     | Number of bytes used by the wear-leveling algorithm for its underlying storage, and needs to be a multiple of the logical size as well as the sector size.
 `#define BACKING_STORE_WRITE_SIZE`        | `2`                        | The write width used whenever a write is performed on the external flash peripheral.
+
+## Wear-leveling Kinetis FTFA Driver Configuration {#wear_leveling-kinetis_ftfa-driver-configuration}
+
+This driver writes to the program flash of MCUs with the Kinetis FTFA flash memory module, such as the NXP MCXC243. The backing storage is the flash area that the MCU's linker script keeps free, between `__eeprom_workarea_start__` and `__eeprom_workarea_end__` (the last 8kB of flash for the MCXC243). The flash cannot be read while it is being programmed or erased, so each flash command runs from RAM with interrupts disabled: up to 145µs for a 4-byte write and up to 114ms for a 1kB sector erase on the MCXC243 (data sheet maximums). Sector erases only happen when the wear-leveling algorithm compacts its log.
+
+Configurable options in your keyboard's `config.h`:
+
+`config.h` override                              | Default            | Description
+-------------------------------------------------|--------------------|--------------------------------------------------------------------------------------------------------------------------------
+`#define WEAR_LEVELING_LOGICAL_SIZE`             | `(backing_size/2)` | Number of bytes "exposed" to the rest of QMK and denotes the size of the usable EEPROM.
+`#define WEAR_LEVELING_BACKING_SIZE`             | `8192`             | Number of bytes used by the wear-leveling algorithm for its underlying storage. It must fit in the flash area reserved by the linker script and be a multiple of the logical size and of the sector size.
+`#define WEAR_LEVELING_KINETIS_FTFA_SECTOR_SIZE` | `1024`             | The flash sector (erase) size of the MCU.
+`#define BACKING_STORE_WRITE_SIZE`               | `4`                | The write width of the FTFA (Program Longword command). Other values are not supported.
 
 ## Wear-leveling Legacy EEPROM Emulation Driver Configuration {#wear_leveling-legacy-driver-configuration}
 
