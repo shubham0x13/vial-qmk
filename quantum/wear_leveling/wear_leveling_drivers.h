@@ -8,8 +8,6 @@
 #    include "wear_leveling/wear_leveling_flash_spi_config.h"
 #elif defined(WEAR_LEVELING_RP2040_FLASH)
 #    include "wear_leveling/wear_leveling_rp2040_flash_config.h"
-#elif defined(WEAR_LEVELING_KINETIS_FTFA)
-#    include "wear_leveling/wear_leveling_kinetis_ftfa_config.h"
 #elif defined(WEAR_LEVELING_LEGACY)
 #    include "wear_leveling/wear_leveling_legacy_config.h"
 #endif

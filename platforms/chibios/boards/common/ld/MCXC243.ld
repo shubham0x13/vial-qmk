@@ -30,9 +30,9 @@
  * SRAM_U 0x2000_0000-0x2000_5FFF. The flash configuration field is at
  * 0x0000_0400.
  *
- * The last 8 KB of flash (flash3, 0x0001_E000-0x0001_FFFF, eight 1 KB sectors
- * in program flash block 1) are kept free of code and data for the emulated
- * EEPROM, like the work area of the KL26Z64 linker script.
+ * The last 8 KB of flash (flash3, 0x0001_E000-0x0001_FFFF, eight 1 KB sectors)
+ * are kept free of code and data: QMK's embedded_flash wear-leveling places
+ * its default 8 KB backing store at the end of the flash.
  */
 MEMORY
 {
@@ -106,10 +106,6 @@ REGION_ALIAS("BSS_RAM", ram0);
 
 /* RAM region to be used for the default heap.*/
 REGION_ALIAS("HEAP_RAM", ram0);
-
-__eeprom_workarea_start__ = ORIGIN(flash3);
-__eeprom_workarea_size__  = LENGTH(flash3);
-__eeprom_workarea_end__   = __eeprom_workarea_start__ + __eeprom_workarea_size__;
 
 /* Generic rules inclusion.*/
 INCLUDE rules.ld
