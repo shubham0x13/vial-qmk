@@ -20,6 +20,13 @@
 #define KINETIS_CLKDIV1_OUTDIV1 1
 
 /*
+ * GPT driver settings.
+ *
+ * PIT channel 0 is used by QMK's wait_us() (WAIT_US_TIMER in config.h).
+ */
+#define KINETIS_GPT_USE_PIT0 TRUE
+
+/*
  * USB driver settings.
  *
  * The ChibiOS-Contrib default priority (5) is meant for the K20x and is not
