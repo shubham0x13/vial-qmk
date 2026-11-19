@@ -20,10 +20,11 @@
 #define KL27Zxxx
 
 /*
- * USBx_CTL_RESUME (bit 2 of USBx_CTL, reference manual section 33.5.10) is
- * used for USB remote wakeup. Older ChibiOS-Contrib does not define it for the
- * KL27Zxxx device, so define it here when the device header does not. The value
- * is the one of the other Kinetis headers in ChibiOS-Contrib.
+ * USBx_CTL_RESUME (bit 2 of USBx_CTL) is used for USB remote wakeup. The
+ * MCXC243 reference manual (section 33.5.10) documents it; the KL27 reference
+ * manuals list that bit as reserved, and ChibiOS-Contrib's KL27Zxxx header does
+ * not define it. Define it here when the device header does not; the value is
+ * the one of the other Kinetis headers in ChibiOS-Contrib.
  */
 #ifndef USBx_CTL_RESUME
 #    define USBx_CTL_RESUME ((uint8_t)0x04)
