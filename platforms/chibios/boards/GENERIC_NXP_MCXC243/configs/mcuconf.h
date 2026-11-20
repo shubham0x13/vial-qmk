@@ -27,6 +27,20 @@
 #define KINETIS_GPT_USE_PIT0 TRUE
 
 /*
+ * I2C driver settings.
+ *
+ * Keyboards enable the I2C peripherals they use. The ChibiOS-Contrib default
+ * priority (12) is not valid on this core (priorities 0 to 3). Highest
+ * priority, as for I2C0 in Zephyr's MCX C devicetree: the I2C module does not
+ * hold the bus between received bytes, and the workaround is a higher
+ * interrupt priority (errata ERR009308).
+ */
+#define KINETIS_I2C_USE_I2C0 FALSE
+#define KINETIS_I2C_USE_I2C1 FALSE
+#define KINETIS_I2C_I2C0_PRIORITY 0
+#define KINETIS_I2C_I2C1_PRIORITY 0
+
+/*
  * USB driver settings.
  *
  * The ChibiOS-Contrib default priority (5) is meant for the K20x and is not
