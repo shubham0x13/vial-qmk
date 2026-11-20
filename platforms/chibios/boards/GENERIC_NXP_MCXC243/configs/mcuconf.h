@@ -27,6 +27,15 @@
 #define KINETIS_GPT_USE_PIT0 TRUE
 
 /*
+ * ST driver settings.
+ *
+ * The ChibiOS-Contrib default SysTick priority (8) is not valid on this core
+ * (priorities 0 to 3); the value written to the priority register is the
+ * same, 0.
+ */
+#define KINETIS_ST_IRQ_PRIORITY 0
+
+/*
  * I2C driver settings.
  *
  * Keyboards enable the I2C peripherals they use. The ChibiOS-Contrib default
