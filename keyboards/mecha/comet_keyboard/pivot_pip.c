@@ -204,8 +204,13 @@ report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report) {
             y = pip_axis_update(&pip, &axis_y, raw_y, elapsed_us);
             pd_dprintf("Pivot Pip: raw x %ld y %ld, deflection x %ld y %ld\n", (long)raw_x, (long)raw_y, (long)x, (long)y);
 
-            mouse_report.x = pip_motion(&remainder_x, x, PIVOT_PIP_MAX_SPEED, elapsed_us);
-            mouse_report.y = pip_motion(&remainder_y, y, PIVOT_PIP_MAX_SPEED, elapsed_us);
+            x = pip_motion(&remainder_x, x, PIVOT_PIP_MAX_SPEED, elapsed_us);
+            y = pip_motion(&remainder_y, y, PIVOT_PIP_MAX_SPEED, elapsed_us);
+
+            // Limited to the range of the mouse report: a late sample at a
+            // high PIVOT_PIP_MAX_SPEED can give more counts than it holds
+            mouse_report.x = CONSTRAIN_HID_XY(x);
+            mouse_report.y = CONSTRAIN_HID_XY(y);
             break;
     }
 
