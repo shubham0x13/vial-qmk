@@ -17,7 +17,8 @@
         "bootmagic": true,
         "caps_word": true,
         "extrakey": true,
-        "mousekey": true
+        "mousekey": true,
+        "pointing_device": true
     },
     "indicators": {
         "caps_lock": "D6"

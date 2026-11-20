@@ -27,3 +27,7 @@ Enter the bootloader in 3 ways:
 ## Default combo
 
 Left click + right click sends the middle mouse button. It is a Vial combo, so it can be changed or deleted in Vial. It is written again after a reset of the keyboard's EEPROM data (a full reset, or a firmware update) and is active from the next power-up.
+
+## Pointing stick
+
+The Pivot Pip pointing stick is read through an ADS1115 on I2C0 (`pivot_pip.c`, a custom pointing device driver). Its signal processing, `pip_core.c` and `pip_core.h`, is copied unchanged from [mecha-org/mecha-pivot-pip-zephyr](https://github.com/mecha-org/mecha-pivot-pip-zephyr) (`lib/pip_core`, commit `1972e2e`), so the stick behaves as in the ZMK and Zephyr firmware. To update it, copy both files again from that repository and update the commit here.
