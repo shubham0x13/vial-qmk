@@ -6,12 +6,6 @@
     "bootmagic": {
         "matrix": [4, 0]
     },
-    "caps_word": {
-        "double_tap_shift_turns_on": true
-    },
-    "combo": {
-        "term": 50
-    },
     "diode_direction": "COL2ROW",
     "features": {
         "bootmagic": true,
@@ -33,10 +27,6 @@
     "matrix_pins": {
         "cols": ["B16", "B17", "C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7"],
         "rows": ["B0", "B1", "B2", "B3", "D1"]
-    },
-    "oneshot": {
-        "tap_toggle": 2,
-        "timeout": 5000
     },
     "processor": "MCXC243",
     "usb": {

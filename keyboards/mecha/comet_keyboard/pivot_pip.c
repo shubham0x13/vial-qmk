@@ -4,7 +4,7 @@
 // Mecha Pivot Pip pointing stick, as a QMK custom pointing device driver.
 //
 // The X and Y axes of the stick are read through AIN0 and AIN1 of an ADS1115
-// and processed by pip_core (pip_core.c, copied unchanged from
+// and processed by pip_core (lib/pip_core, copied unchanged from
 // mecha-org/mecha-pivot-pip-zephyr), as in the Zephyr driver of that
 // repository used by the ZMK and gamepad firmware. The ADS1115 is configured
 // as by Zephyr's ADS1x1x driver with the settings of the ZMK firmware.
@@ -16,7 +16,7 @@
 #include QMK_KEYBOARD_H
 #include "i2c_master.h"
 #include "pointing_device_internal.h"
-#include "pip_core.h"
+#include "lib/pip_core/pip_core.h"
 
 #define ADS1115_ADDRESS (0x48 << 1)
 #define ADS1115_REG_CONVERSION 0x00
