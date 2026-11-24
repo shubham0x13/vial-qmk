@@ -4,7 +4,7 @@
 # Builds the Mecha Comet keyboard firmware. Release images are uploaded as
 # artifacts; for a tag like v0.1.0 they are attached to a draft release.
 
-name: Mecha Comet keyboard
+name: Build Mecha Comet keyboard
 
 on: [push, pull_request, workflow_dispatch]
 

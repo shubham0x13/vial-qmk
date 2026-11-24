@@ -1,0 +1,20 @@
+# Copyright 2026 Mecha Systems
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    # vial-qmk's own workflow stays as upstream has it
+    exclude-paths:
+      - ".github/workflows/ci.yml"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "ci"
+    groups:
+      actions-deps:
+        patterns:
+          - "*"
