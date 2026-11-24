@@ -26,6 +26,14 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
         return false;
     }
 
+    // One-shot modifiers (Ctrl, Alt, ...) never latch, as in the ZMK firmware:
+    // from the second tap on, QMK sees a first tap again and only re-arms the
+    // one-shot. One-shot layers keep ONESHOT_TAP_TOGGLE (a double tap latches
+    // Fn / Num).
+    if (IS_QK_ONE_SHOT_MOD(keycode) && record->event.pressed && record->tap.count > 1) {
+        record->tap.count = 1;
+    }
+
     switch (keycode) {
         case CK_EMOJI:
             // GUI + period opens the emoji picker, then Space
