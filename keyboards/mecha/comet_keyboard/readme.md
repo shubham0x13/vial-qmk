@@ -16,6 +16,15 @@ Flashing example for this keyboard:
 
 See the [build environment setup](https://docs.qmk.fm/#/getting_started_build_tools) and the [make instructions](https://docs.qmk.fm/#/getting_started_make_guide) for more information. Brand new to QMK? Start with our [Complete Newbs Guide](https://docs.qmk.fm/#/newbs).
 
+## Keymaps
+
+* `vial`: QWERTY
+* `vial_qwertz`, `vial_azerty`: QWERTZ and AZERTY (currently copies of the QWERTY keymap)
+
+## Firmware version
+
+The firmware version is `usb.device_version` in `keyboard.json`, reported as the USB device release number (bcdDevice) in binary-coded decimal: `0.1.0` is `0x0010` and `1.2.3` is `0x0123`. Keep it equal to the release tag.
+
 ## Bootloader
 
 Enter the bootloader in 3 ways:
