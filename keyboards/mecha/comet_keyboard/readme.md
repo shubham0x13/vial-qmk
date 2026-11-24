@@ -40,3 +40,7 @@ Left click + right click sends the middle mouse button. It is a Vial combo, so i
 ## Pointing stick
 
 The Pivot Pip pointing stick is read through an ADS1115 on I2C0 (`pivot_pip.c`, a custom pointing device driver). Its signal processing, `lib/pip_core` (`pip_core.c` and `pip_core.h`), is copied unchanged from [mecha-org/mecha-pivot-pip-zephyr](https://github.com/mecha-org/mecha-pivot-pip-zephyr) (`lib/pip_core`, commit `1972e2e`), so the stick behaves as in the ZMK and Zephyr firmware. To update it, copy both files again into `lib/pip_core` from that repository and update the commit here.
+
+To build without the pointing stick (and without QMK's pointing device feature):
+
+    qmk compile -kb mecha/comet_keyboard -km vial -e PIVOT_PIP_ENABLE=no
