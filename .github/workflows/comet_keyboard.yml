@@ -1,0 +1,169 @@
+# Copyright 2026 Mecha Systems
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# Builds the Mecha Comet keyboard firmware. Release images are uploaded as
+# artifacts; for a tag like v0.1.0 they are attached to a draft release.
+
+name: Comet keyboard
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
+
+env:
+  KEYBOARD: mecha/comet_keyboard
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container: ghcr.io/qmk/qmk_cli@sha256:2dc05fc9f32efebd6b05c2b8676ee548358bc7e151e9dbf4dac6b6eed4513b07
+    name: Check
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check that the tag matches the firmware version
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          # The version is usb.device_version in keyboard.json, reported as the
+          # USB device release number in binary-coded decimal, MM.m.p: v0.1.0
+          # is 0x0010 and v1.2.3 is 0x0123.
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v((0|[1-9][0-9]?)\.[0-9]\.[0-9])(-.+)?$ ]]; then
+            echo "::error::The tag ${GITHUB_REF_NAME} must look like v0.1.0 or v12.3.4-rc1"
+            exit 1
+          fi
+          expected="${BASH_REMATCH[1]}"
+          actual="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["usb"]["device_version"])' "keyboards/${KEYBOARD}/keyboard.json")"
+          if [[ "${actual}" != "${expected}" ]]; then
+            echo "::error::The tag ${GITHUB_REF_NAME} needs usb.device_version \"${expected}\" in keyboards/${KEYBOARD}/keyboard.json (it is \"${actual}\")"
+            exit 1
+          fi
+
+      - name: Lint
+        run: |
+          git config --global --add safe.directory "$(pwd)"
+          # The keyboard checks and the default keymap; QMK's lint rejects
+          # every keymap named vial
+          qmk lint -kb "${KEYBOARD}" -km default
+
+      - name: Verify the Vial UIDs
+        run: python3 util/ci_vial_verify_uid.py
+
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    container: ghcr.io/qmk/qmk_cli@sha256:2dc05fc9f32efebd6b05c2b8676ee548358bc7e151e9dbf4dac6b6eed4513b07
+    needs: check
+    name: Build ${{ matrix.artifact-name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - keymap: vial
+            artifact-name: mecha_comet_keyboard_qwerty
+          - keymap: vial_qwertz
+            artifact-name: mecha_comet_keyboard_qwertz
+          - keymap: vial_azerty
+            artifact-name: mecha_comet_keyboard_azerty
+
+          # Development builds: only checked, never released.
+          - keymap: default
+            artifact-name: mecha_comet_keyboard_qwerty_qmk
+            check-only: true
+          - keymap: vial
+            options: PIVOT_PIP_ENABLE=no
+            artifact-name: mecha_comet_keyboard_qwerty_no_pivot_pip
+            check-only: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Build
+        env:
+          KEYMAP: ${{ matrix.keymap }}
+          OPTIONS: ${{ matrix.options }}
+        run: |
+          git config --global --add safe.directory "$(pwd)"
+          qmk compile -kb "${KEYBOARD}" -km "${KEYMAP}" ${OPTIONS:+-e "${OPTIONS}"}
+
+      - name: Memory usage
+        env:
+          KEYMAP: ${{ matrix.keymap }}
+          ARTIFACT_NAME: ${{ matrix.artifact-name }}
+        run: |
+          # Flash: the image against the program flash before the EEPROM area
+          # (flash0 to the end of flash2). RAM: stacks, data and bss, up to the
+          # start of ChibiOS's heap, which takes the rest of RAM.
+          elf=".build/$(echo "${KEYBOARD}" | tr / _)_${KEYMAP}.elf"
+          python3 - "${elf}" "${ARTIFACT_NAME}" <<'EOF' | tee -a "${GITHUB_STEP_SUMMARY}"
+          import os, subprocess, sys
+          elf, name = sys.argv[1], sys.argv[2]
+          sym = {}
+          for line in subprocess.run(["arm-none-eabi-nm", elf], capture_output=True, text=True, check=True).stdout.splitlines():
+              parts = line.split()
+              if len(parts) == 3:
+                  sym[parts[2]] = int(parts[0], 16)
+          flash_used = os.path.getsize(elf[:-4] + ".bin")
+          flash_size = sym["__flash2_end__"] - sym["__flash0_base__"]
+          ram_used = sym["__heap_base__"] - sym["__ram0_base__"]
+          ram_size = sym["__ram0_size__"]
+          print(f"### {name}\n")
+          print("| Memory | Used | Size | Used % |")
+          print("|---|---:|---:|---:|")
+          print(f"| Flash | {flash_used:,} B | {flash_size:,} B | {100 * flash_used / flash_size:.1f} % |")
+          print(f"| RAM | {ram_used:,} B | {ram_size:,} B | {100 * ram_used / ram_size:.1f} % |\n")
+          EOF
+
+      - name: Rename artifact
+        if: ${{ !matrix.check-only }}
+        env:
+          KEYMAP: ${{ matrix.keymap }}
+          ARTIFACT_NAME: ${{ matrix.artifact-name }}
+        run: |
+          mkdir artifacts
+          cp ".build/$(echo "${KEYBOARD}" | tr / _)_${KEYMAP}.bin" "artifacts/${ARTIFACT_NAME}.bin"
+
+      - name: Archive
+        if: ${{ !matrix.check-only }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: artifact-${{ matrix.artifact-name }}
+          path: artifacts
+
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    name: Create draft release
+    permissions:
+      contents: write # create the draft release and upload the firmware to it
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Download firmware
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: artifact-*
+          merge-multiple: true
+          path: firmware
+
+      - name: Create draft release
+        run: |
+          cd firmware
+          for f in *.bin; do mv -- "$f" "${f%.bin}-${GITHUB_REF_NAME}.bin"; done
+          sha256sum -- * > SHA256SUMS
+          gh release create "${GITHUB_REF_NAME}" --draft --verify-tag --generate-notes -- *
