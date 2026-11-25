@@ -51,3 +51,39 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 
     return true;
 }
+
+#ifdef CAPS_WORD_ENABLE
+// The caps lock LED also shows Caps Word
+bool led_update_kb(led_t led_state) {
+    bool res = led_update_user(led_state);
+
+    if (res) {
+        led_update_ports(led_state);
+        if (is_caps_word_on()) {
+            // The caps lock LED is active high
+            gpio_write_pin_high(LED_CAPS_LOCK_PIN);
+        }
+    }
+
+    return res;
+}
+
+void housekeeping_task_kb(void) {
+    static bool caps_word_was_on;
+
+    if (is_caps_word_on() != caps_word_was_on) {
+        caps_word_was_on = is_caps_word_on();
+        led_update_kb(host_keyboard_led_state());
+    }
+
+    housekeeping_task_user();
+}
+
+// Caps Word ends when the host suspends the bus, so the caps lock LED goes off
+// with the other indicators (QMK calls this before led_suspend())
+void suspend_power_down_kb(void) {
+    caps_word_off();
+
+    suspend_power_down_user();
+}
+#endif // CAPS_WORD_ENABLE
